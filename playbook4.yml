@@ -1,9 +1,0 @@
-- hosts: all
-  user: centos
-  become: yes
-  become_user: root
-
-  tasks:
-  - name: Testing this out
-    debug: msg="Hello from server!"
-

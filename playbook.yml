@@ -1,11 +1,13 @@
-- hosts: all
-  user: centos
+- hosts: sysadmin
   become: yes
+  become_user: root
+
   vars:
     hostname: A73632
     domain_name: sa.cs.ut.ee
-  #become_user: root
+    timezone: Europe/Tallinn
+    mail_to: nagios@scoring.sa.cs.ut.ee
 
   roles:
-#  - { role: etais, tags: etais }
-  - { role: dns, tags: dns }
+    - { role: etais, tags: etais }
+#    - { role: dns, tags: dns }
