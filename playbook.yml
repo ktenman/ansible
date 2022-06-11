@@ -1,4 +1,5 @@
-- hosts: sysadmin
+- hosts: all
+  user: centos
   become: yes
   become_user: root
 
