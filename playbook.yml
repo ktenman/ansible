@@ -3,11 +3,8 @@
   become: yes
   become_user: root
 
-  vars:
-    hostname: A73632
-    domain_name: sa.cs.ut.ee
-    timezone: Europe/Tallinn
-    mail_to: nagios@scoring.sa.cs.ut.ee
+  vars_files:
+    - vars.yml
 
   roles:
     - { role: etais, tags: etais }
