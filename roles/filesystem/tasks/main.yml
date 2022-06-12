@@ -56,12 +56,8 @@
       path: /lab7/fs-xfs
       fstype: xfs
 
-- name: systemctl daemon-reload
-  systemd:
-    name: systemctl
-    state: reloaded
-    enabled: yes
-    masked: no
+- name: sudo systemctl daemon-reload
+  shell: sudo systemctl daemon-reload
 
 - name: dnf install nfs-utils
   dnf:
