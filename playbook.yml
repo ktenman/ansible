@@ -7,4 +7,4 @@
 
   roles:
     - { role: etais, tags: etais }
-#    - { role: dns, tags: dns }
+    - { role: dns, tags: dns }
