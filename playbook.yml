@@ -6,7 +6,8 @@
     - vars.yml
 
   roles:
-    - { role: etais, tags: etais }
-    - { role: dns, tags: dns }
-    - { role: apache, tags: apache }
-    - { role: email, tags: email }
+#    - { role: etais, tags: etais }
+#    - { role: dns, tags: dns }
+#    - { role: apache, tags: apache }
+#    - { role: email, tags: email }
+    - { role: tls, tags: tls }
