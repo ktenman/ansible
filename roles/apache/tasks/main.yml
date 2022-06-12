@@ -3,33 +3,33 @@
     path: /etc/named/{{ hostname }}.{{ domain_name }}
     block: |
       www IN CNAME {{ hostname }}.{{ domain_name }}.
-    marker: 
+    marker:
       "; {mark} ANSIBLE MANAGED BLOCK for CNAME for www"
   notify: restart named
 
-- name: install httpd 
+- name: install httpd
   dnf:
     name: ["httpd", "mod_ssl"]
     state: installed
 
-- name: Add http rule to firewalld 
+- name: Add http rule to firewalld
   firewalld:
     service: http
     permanent: yes
     state: enabled
   notify: restart firewalld
 
-- name: Create folder for apache 
+- name: Create folder for apache
   file:
-    path: "{{ item }}" 
+    path: "{{ item }}"
     state: directory
     mode: 0755
     owner: apache
     group: apache
     recurse: yes
   with_items:
-  - /var/www
-  - /var/www/html/www.{{ hostname }}/public_html
+    - /var/www
+    - /var/www/html/www.{{ hostname }}/public_html
 
 - name: Create a config for www virtual host
   template:
@@ -43,13 +43,13 @@
   copy:
     dest: /var/www/html/www.{{ hostname }}/public_html/index.html
     content: |
-        www.{{ hostname }}.{{ domain_name }}
+      www.{{ hostname }}.{{ domain_name }}
     owner: root
     group: root
     mode: 0644
   notify: restart httpd
 
-- name: dnf install python3-pip 
+- name: dnf install python3-pip
   dnf:
     name: python3-pip
     state: installed
@@ -64,11 +64,11 @@
     path: /etc/named/{{ hostname }}.{{ domain_name }}
     block: |
       proxy IN CNAME {{ hostname }}.{{ domain_name }}.
-    marker: 
+    marker:
       "; {mark} ANSIBLE MANAGED BLOCK for CNAME for proxy"
   notify:
-  - increment serial
-  - restart named
+    - increment serial
+    - restart named
 
 - name: Make a proxy user
   user:
@@ -82,8 +82,8 @@
     owner: proxy
     group: proxy
     mode: 0644
-    
-- name: Create proxy service 
+
+- name: Create proxy service
   copy:
     src: proxy.service
     dest: /etc/systemd/system/proxy.service
@@ -169,27 +169,27 @@
     state: present
 
 - name: create log files
-  file: 
+  file:
     path: /var/log/httpd/{{ item }}
     state: touch
     owner: root
     group: root
     mode: 0755
-  with_items: 
-  - php-errors.log
-  - www-php-errors.log
-  - www.{{ hostname }}-forensic.log
+  with_items:
+    - php-errors.log
+    - www-php-errors.log
+    - www.{{ hostname }}-forensic.log
 
-- name: change log files 
-  copy: 
+- name: change log files
+  copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
     owner: root
     group: root
     mode: 0644
   with_items:
-  - { src: "php-fpm.conf", dest: "/etc/php-fpm.conf" }
-  - { src: "www.conf", dest: "/etc/php-fpm.d/www.conf"}
+    - { src: "php-fpm.conf", dest: "/etc/php-fpm.conf" }
+    - { src: "www.conf", dest: "/etc/php-fpm.d/www.conf"}
 
 - name: create virtual host for wordpress
   template:
@@ -199,19 +199,19 @@
     group: apache
     mode: 0644
   notify:
-  - restart httpd
-  - restart php-fpm
+    - restart httpd
+    - restart php-fpm
 
 - name: Add CNAME for wordpress
   blockinfile:
     path: /etc/named/{{ hostname }}.{{ domain_name }}
     block: |
       wordpress IN CNAME {{ hostname }}.{{ domain_name }}.
-    marker: 
+    marker:
       "; {mark} ANSIBLE MANAGED BLOCK for CNAME for wordpress"
-  notify: 
-  - increment serial
-  - restart named
+  notify:
+    - increment serial
+    - restart named
 
 - name: Add mode_security rules
   copy:
