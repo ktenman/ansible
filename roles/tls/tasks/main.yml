@@ -1,4 +1,4 @@
-- name: copy certificate things 
+- name: copy certificates
   copy: 
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
@@ -80,11 +80,6 @@
     owner: root
     group: root
     mode: '0644'
-  notify: restart dovecot
-
-# just in case
-- name: restart firewalld
-  service:
-    name: firewalld
-    state: restarted
-    enabled: yes
+  notify:
+  - restart dovecot
+  - restart firewalld
