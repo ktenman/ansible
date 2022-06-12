@@ -11,4 +11,5 @@
 #    - { role: apache, tags: apache }
 #    - { role: email, tags: email }
 #    - { role: tls, tags: tls }
-    - { role: filesystem, tags: filesystem }
+#    - { role: filesystem, tags: filesystem }
+    - { role: container, tags: container }

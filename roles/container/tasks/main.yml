@@ -1,0 +1,126 @@
+- name: install yum-utils
+  yum:
+    name: yum-utils
+    state: present
+
+- name: create docker folder
+  file:
+    path: /etc/docker
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+
+- name: move daemon.json to /etc/docker
+  copy:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: 0644
+
+- name:  Add docker repo
+  shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+- name: install docker 
+  yum:
+    name: ['docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-compose-plugin', 'python3-docker']
+    state: present
+
+- name: restart docker
+  systemd:
+    name: docker
+    state: restarted
+    enabled: yes
+    masked: no
+
+- name:  First, create a folder called docker_lab
+  file: 
+    path: /home/centos/docker_lab
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+
+- name: move Dockerfile and server.py to docker_lab
+  copy:
+    src: "{{item}}"
+    dest: /home/centos/docker_lab/{{item}}
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - Dockerfile
+    - server.py
+
+- name: docker build
+  docker_image:
+    name: docker_lab
+    build:
+      path: /home/centos/docker_lab
+      pull: no
+    source: build
+
+- name: create docker network # https://docs.ansible.com/ansible/2.9/modules/docker_network_module.html
+  docker_network:
+    name: docker_lab
+    ipam_config:
+      - subnet: "{{ docker.network.subnet }}"
+        iprange: "{{ docker.network.iprange }}"
+        gateway: "{{ docker.network.gateway }}"
+    driver: bridge
+
+- name: create whoami container 
+  docker_container:
+    name: whoami
+    image: registry.hpc.ut.ee/mirror/containous/whoami
+    pull: yes 
+    restart_policy: always
+
+- name: docker run
+  docker_container:
+    name: docker_lab
+    image: docker_lab
+    hostname: docker-lab
+    pull: no
+    networks_cli_compatible: yes
+    restart_policy: always
+    networks:
+      - name: docker_lab
+        ipv4_address: "{{ docker.container_ip }}"
+    exposed_ports:
+      - '5000'
+    ports:
+      - '5005:5000'
+
+- name: Add CNAME for container-proxy
+  blockinfile:
+    path: /etc/named/{{ hostname }}.{{ domain_name }}
+    block: |
+      container-proxy IN CNAME {{ hostname}}
+    marker: 
+      "; {mark} ANSIBLE MANAGED BLOCK for CNAME for container-proxy"
+  notify: 
+  - increment serial
+  - restart named
+
+- name: flush handlers
+  meta: flush_handlers
+
+- name: create virtual host for container-proxy 
+  template:
+    src: vhost_proxy_container.j2
+    dest: /etc/httpd/conf.d/container-proxy.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart httpd
+
+- name: Open 5005 port
+  firewalld:
+    permanent: yes
+    state: enabled
+    port: "5005/tcp"
+  notify:
+  - restart firewalld
+  - restart named
