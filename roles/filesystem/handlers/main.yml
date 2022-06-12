@@ -1,0 +1,24 @@
+---
+- name: restart nfs-server
+  service:
+    name: nfs-server
+    state: restarted
+    enabled: yes
+    masked: no
+
+- name: restart firewalld
+  service:
+    name: firewalld
+    state: restarted
+    enabled: yes
+    masked: no
+
+- name: restart smb
+  service:
+    name: smb
+    state: restarted
+    enabled: yes
+    masked: no
+
+- name: exportfs -a 
+  command: exportfs -a
