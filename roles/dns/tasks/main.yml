@@ -146,7 +146,7 @@
         allow-update { none; };
       };
     marker: "# {mark} ANSIBLE MANAGED BLOCK for reverse zone"
-  notify: restart bind
+  notify: restart named
 
 - name: flush handlers
   meta: flush_handlers
