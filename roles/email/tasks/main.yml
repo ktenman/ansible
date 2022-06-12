@@ -81,7 +81,7 @@
     name: telnet
     state: installed
 
-- name: add 25, 143, 993, 110, 995, 587 to firewalld
+- name: add tcp 25, 143, 993, 110, 995, 587 to firewalld
   firewalld:
     permanent: yes
     state: enabled
@@ -93,6 +93,20 @@
   - 110
   - 995
   - 587
+  notify: restart firewalld
+
+- name: add udp 25, 143, 993, 110, 995, 587 to firewalld
+  firewalld:
+    permanent: yes
+    state: enabled
+    port: "{{ item }}/udp"
+  with_items:
+    - 25
+    - 143
+    - 993
+    - 110
+    - 995
+    - 587
   notify: restart firewalld
 
 - name: copy master.cf 
