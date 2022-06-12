@@ -177,7 +177,7 @@
     mode: "u+rwx"
 
 - name: Add our own host to scoring
-  shell: sudo mc config host add scoring https://scoring.sa.cs.ut.ee:9000 {{ hostname }} {{ kv_pass }}
+  shell: mc config host add scoring https://scoring.sa.cs.ut.ee:9000 {{ hostname }} {{ kv_pass }}
 
 - name: create a bucket
   shell: mc mb scoring/{{ hostname }}
