@@ -15,7 +15,7 @@
 //       for Mysql: key, cipher, cert, capath, ca, verify_server_cert,
 //       for Postgres: application_name, sslmode, sslcert, sslkey, sslrootcert, sslcrl, sslcompression, service.
 //       e.g. 'mysql://roundcube:@localhost/roundcubemail?verify_server_cert=false'
-$config['db_dsnw'] = 'mysql://roundcube:{{ mailuser_db_pass_jinja }}@localhost/roundcubemail';
+$config['db_dsnw'] = 'mysql://roundcube:{{ mysql_password }}@localhost/roundcubemail';
 
 // ----------------------------------
 // IMAP
@@ -48,7 +48,7 @@ $config['log_dir'] = '/var/log/roundcube';
 // in the session. For historical reasons it's called DES_key, but it's used
 // with any configured cipher_method (see below).     
 // For the default cipher_method a required key length is 24 characters.
-$config['des_key'] = '{{ mailuser_db_pass }}';      
+$config['des_key'] = '{{ securepassword }}';
 
 // Name your service. This is displayed on the login screen and in the window title
 $config['product_name'] = 'Webmail - {{ hostname }}.{{ domain_name }}';
