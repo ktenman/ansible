@@ -222,5 +222,15 @@
     mode: 0644
   notify: restart httpd
 
+- name: Add 80 service
+  firewalld:
+    port: "{{ item }}"
+    permanent: yes
+    state: enabled
+  with_items:
+    - 80/udp
+    - 80/tcp
+  notify: restart firewalld
+
 - name: flush handlers
   meta: flush_handlers
