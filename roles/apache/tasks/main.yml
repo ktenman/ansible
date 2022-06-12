@@ -79,7 +79,6 @@
   copy:
     src: website.py
     dest: /usr/local/lib/server.py
-    remote_src: yes
     owner: proxy
     group: proxy
     mode: 0644
@@ -90,7 +89,7 @@
     dest: /etc/systemd/system/proxy.service
     owner: root
     group: root
-    mode: '0644'
+    mode: 0644
 
 - name: Create virtual host for proxy
   template:
@@ -98,7 +97,7 @@
     dest: /etc/httpd/conf.d/proxy.{{ hostname }}.conf
     owner: root
     group: root
-    mode: '0644'
+    mode: 0644
   notify: restart httpd
 
 - name: Seboolean | this equates to 'setsebool -P httpd_can_network_connect=1'
@@ -187,7 +186,7 @@
     dest: "{{ item.dest }}"
     owner: root
     group: root
-    mode: '0644'
+    mode: 0644
   with_items:
   - { src: "php-fpm.conf", dest: "/etc/php-fpm.conf" }
   - { src: "www.conf", dest: "/etc/php-fpm.d/www.conf"}
@@ -198,7 +197,7 @@
     dest: /etc/httpd/conf.d/wordpress.{{ hostname }}.conf
     owner: apache
     group: apache
-    mode: '0644'
+    mode: 0644
   notify:
   - restart httpd
   - restart php-fpm
@@ -220,7 +219,7 @@
     dest: /etc/httpd/modsecurity.d/local_rules/modsecurity_localrules.conf
     owner: root
     group: root
-    mode: '0644'
+    mode: 0644
   notify: restart httpd
 
 - name: flush handlers
