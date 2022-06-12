@@ -26,7 +26,6 @@
     owner: root
     group: root
     mode: 0644
-  notify: reboot
 
 - name: Change net.ipv6.conf.default.disable_ipv6 to 1.
   sysctl:
