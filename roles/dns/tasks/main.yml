@@ -83,14 +83,14 @@
     group: named
     mode: '0644'
   notify: restart bind
-
-- name: Get OpenStack metadata
-  uri:
-    url: http://169.254.169.254/latest/meta-data/public-ipv4
-    method: GET
-    status_code: 200
-    return_content: yes
-  register: cloud_metadata
+#
+#- name: Get OpenStack metadata
+#  uri:
+#    url: http://169.254.169.254/latest/meta-data/public-ipv4
+#    method: GET
+#    status_code: 200
+#    return_content: yes
+#  register: cloud_metadata
 
 - name: Add zone file
   template:
@@ -122,8 +122,8 @@
 
 - name: Get reverse ip
   set_fact:
-    reverse_ip: "{{ cloud_metadata.content.split('.')[0:3] | reverse | join('.') }}"
-    last_octet: "{{ cloud_metadata.content.split('.')[-1] }}"
+    reverse_ip: "{{ external_ip.content.split('.')[0:3] | reverse | join('.') }}"
+    last_octet: "{{ external_ip.content.split('.')[-1] }}"
 
 - name: Copy reverse zone file
   template:
