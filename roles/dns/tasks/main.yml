@@ -82,7 +82,7 @@
     owner: root
     group: named
     mode: '0644'
-  notify: restart bind
+  notify: restart named
 
 - name: Get OpenStack metadata
   uri:
@@ -113,7 +113,7 @@
         allow-update { none; };
         notify explicit;
       };
-  notify: restart bind
+  notify: restart named
 
 - name: Copy resolv.conf
   template:
