@@ -54,7 +54,7 @@
     dest: "{{ item.dest }}"
     owner: root
     group: root
-    mode: '0644'
+    mode: 0644
   with_items:
     - src: 10-logging.conf
       dest: /etc/dovecot/conf.d/10-logging.conf

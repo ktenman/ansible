@@ -4,7 +4,7 @@
     dest: "{{ item.dest }}"
     owner: apache
     group: apache
-    mode: '0644'
+    mode: 0644
   with_items:
     - src: www_server.crt
       dest: /etc/pki/tls/certs/www_server.crt
@@ -33,7 +33,7 @@
     dest: /etc/httpd/conf.d/{{item.dest}}.{{ hostname }}.conf
     owner: apache
     group: apache
-    mode: '0644'
+    mode: 0644
   with_items:
     - src: vhost_proxy.j2
       dest: proxy
@@ -61,7 +61,7 @@
     dest: /etc/postfix/main.cf
     owner: root
     group: root
-    mode: '0644'
+    mode: 0644
   notify: restart postfix
 
 - name: Edit postfix master.cf config
@@ -70,7 +70,7 @@
     dest: /etc/postfix/master.cf
     owner: root
     group: root
-    mode: '0644'
+    mode: 0644
   notify: restart postfix
 
 - name: Edit 10-ssl.conf
@@ -79,7 +79,7 @@
     dest: /etc/dovecot/conf.d/10-ssl.conf
     owner: root
     group: root
-    mode: '0644'
+    mode: 0644
   notify:
     - restart dovecot
     - restart firewalld
