@@ -69,7 +69,7 @@
     dest: /etc/postfix/master.cf
     owner: root
     group: root
-    mode: '0644'
+    mode: 0644
   notify: restart postfix  
 
 - name: update 10-ssl.conf
