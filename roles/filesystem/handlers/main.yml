@@ -5,6 +5,7 @@
     state: restarted
     enabled: yes
     masked: no
+  listen: restart nfs-server
 
 - name: restart firewalld
   service:
@@ -12,6 +13,7 @@
     state: restarted
     enabled: yes
     masked: no
+  listen: restart firewalld
 
 - name: restart smb
   service:
@@ -19,6 +21,4 @@
     state: restarted
     enabled: yes
     masked: no
-
-- name: exportfs -a 
-  command: exportfs -a
+  listen: restart smb

@@ -6,27 +6,27 @@
   notify: restart nfs-server
 
 - name: create 2 logical partitions
-  community.general.parted: 
+  community.general.parted:
     device: /dev/sdb
     number: '{{ item.number }}'
     state: present
     part_type: "{{ item.part_type }}"
     part_start: '{{ item.start }}'
     part_end: '{{ item.end }}'
-  with_items: 
-  - number: 1
-    part_type: extended
-    start: 2048s
-    end: 2097151s
-  - number: 5
-    part_type: logical 
-    start: 4096s
-    end: 1048574s
-  - number: 6
-    part_type: logical
-    start: 1050624s
-    end: 2097151s
-  
+  with_items:
+    - number: 1
+      part_type: extended
+      start: 2048s
+      end: 2097151s
+    - number: 5
+      part_type: logical
+      start: 4096s
+      end: 1048574s
+    - number: 6
+      part_type: logical
+      start: 1050624s
+      end: 2097151s
+
 - name: create ext4 and xfs filesystems
   community.general.filesystem:
     fstype: "{{ item.fstype }}"
@@ -34,34 +34,36 @@
     dev: "{{ item.dev }}"
     opts: "{{ item.opts }}"
   with_items:
-  - dev: /dev/sdb5
-    fstype: ext4
-    opts: -L "lab7FSext4"
-  - dev: /dev/sdb6
-    fstype: xfs
-    opts: -L "lab7FSxfs"
+    - dev: /dev/sdb5
+      fstype: ext4
+      opts: -L "lab7FSext4"
+    - dev: /dev/sdb6
+      fstype: xfs
+      opts: -L "lab7FSxfs"
 
 - name: create 5 directories
-  file: 
+  file:
     path: "{{ item.path }}"
     state: directory
     mode: 0755
     owner: root
     group: root
   with_items:
-  - path: /lab7/fs-ext4
-  - path: /lab7/fs-xfs
-  - path: /shares/nfs
-  - path: /mnt/nfs
-  - path: /shares/samba
+    - path: /lab7/fs-ext4
+    - path: /lab7/fs-xfs
+    - path: /shares/nfs
+    - path: /mnt/nfs
+    - path: /shares/samba
 
-- name: add line to /etc/exports
+- name: Setup nfs export to /etc/exports
   lineinfile:
     path: /etc/exports
     line: "/shares/nfs localhost"
     state: present
     create: yes
-  notify: exportfs -a 
+
+- name: run exportfs -a
+  command: exportfs -a
 
 - name: flush handlers
   meta: flush_handlers
@@ -73,27 +75,27 @@
     fstype: "{{ item.fstype }}"
     state: mounted
   with_items:
-  - src: /dev/sdb5
-    path: /lab7/fs-ext4
-    fstype: ext4
-  - src: /dev/sdb6
-    path: /lab7/fs-xfs
-    fstype: xfs
-  - path: /mnt/nfs
-    src: "{{ hostname }}.{{ domain_name }}:/shares/nfs"
-    fstype: nfs
+    - src: /dev/sdb5
+      path: /lab7/fs-ext4
+      fstype: ext4
+    - src: /dev/sdb6
+      path: /lab7/fs-xfs
+      fstype: xfs
+    - path: /mnt/nfs
+      src: "{{ hostname }}.{{ domain_name }}:/shares/nfs"
+      fstype: nfs
 
-- name: add 111 and 2049 to firewalld 
+- name: add 111 and 2049 to firewalld
   firewalld:
     permanent: yes
     state: enabled
     port: "{{ item }}/tcp"
-  with_items: 
-  - 111
-  - 139
-  - 445
-  - 2049
-  notify: restart firewalld 
+  with_items:
+    - 111
+    - 139
+    - 445
+    - 2049
+  notify: restart firewalld
 
 - name: Ensure group "samba_group" exists
   ansible.builtin.group:
@@ -101,23 +103,23 @@
     state: present
 
 - name: add scoring and centos user to the group
-  user: 
+  user:
     name: "{{ item }}"
     groups: samba_group
     append: yes
-  with_items: 
-  - scoring
-  - centos
+  with_items:
+    - scoring
+    - centos
 
-- name: add scoring and centos user to smb 
+- name: add scoring and centos user to smb
   shell: printf "{{ item.pass }}\n{{ item.pass }}" | smbpasswd -a -s {{ item.user }}
   register: output
-  changed_when: '"Added user" in output.stdout' 
+  changed_when: '"Added user" in output.stdout'
   with_items:
-  - user: centos
-    pass: smb_pass.centos
-  - user: scoring
-    pass: smb_pass.scoring
+    - user: centos
+      pass: smb_pass.centos
+    - user: scoring
+      pass: smb_pass.scoring
 
 - name: change /shares/samba permissions
   file:
@@ -133,33 +135,33 @@
     target: '/shares/samba'
     setype: samba_share_t
     state: present
-    
+
 - name: add smb block to /etc/samba/smb.conf
   copy:
     dest: /etc/samba/smb.conf
-    src: smb.conf 
+    src: smb.conf
     owner: root
     group: root
     mode: '0644'
-  notify: 
-  - restart smb
+  notify:
+    - restart smb
 
 - name: put password
   shell: /usr/local/bin/consul kv put object/c18235 "{{ kv_pass }}"
 
-- name: download minio client 
+- name: download minio client
   get_url:
     url: https://dl.min.io/client/mc/release/linux-amd64/mc
     dest: /usr/bin/mc
     owner: root
     mode: 'u+rwx'
 
-- name: add config to host 
-  shell: mc config host add scoring https://scoring.sa.cs.ut.ee:9000 {{ hostname }} {{ kv_pass }}
+- name: Add our own host to scoring
+  shell: mc config host add scoring https://scoring.sa.cs.ut.ee:9000 {{ hostname }} consul123
 
-- name: create bucket 
+- name: create a bucket
   shell: mc mb scoring/{{ hostname }}
-  register: output 
+  register: output
   changed_when: '"Bucket created successfully" in output.stdout'
   ignore_errors: true
 
@@ -170,6 +172,12 @@
     state: present
     create: yes
 
-- name: add file 
+- name: add scoringtestfile into the uppermost path in your bucket.
   shell: mc cp /tmp/scoringtestfile scoring/{{ hostname }}/scoringtestfile
 
+- name: restart firewalld
+  service:
+    name: firewalld
+    state: restarted
+    enabled: yes
+    masked: no
