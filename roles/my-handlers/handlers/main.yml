@@ -1,6 +1,6 @@
 - name: increment serial
   shell: awk -i inplace '{ if ( $0 ~ /Serial/ ) $1=$1+1; print}' /etc/named/{{ hostname }}.{{ domain_name }}
-  listen: "increment serial"
+  listen: increment serial
 
 - name: restart httpd
   systemd:
@@ -9,7 +9,7 @@
     state: restarted
     enabled: yes
     masked: no
-  listen: "restart httpd"
+  listen: restart httpd
 
 - name: restart named
   service:
@@ -17,7 +17,7 @@
     state: restarted
     enabled: yes
     masked: no
-  listen: "restart named"
+  listen: restart named
 
 - name: restart firewalld
   service:
@@ -27,13 +27,21 @@
     masked: no
   listen: restart firewalld
 
+- name: reload firewalld
+  service:
+    name: firewalld
+    state: reloaded
+    enabled: yes
+    masked: no
+  listen: reload firewalld
+
 - name: Enable and start/restart the Apache webserver
   service:
     name: httpd
     enabled: yes
     state: restarted
     masked: no
-  listen: "restart httpd"
+  listen: restart httpd
 
 - name: restart php-fpm
   service:
@@ -41,23 +49,7 @@
     state: restarted
     enabled: yes
     masked: no
-  listen: "restart php-fpm"
-
-- name: restart firewalld
-  service:
-    name: firewalld
-    state: restarted
-    enabled: yes
-    masked: no
-  listen: "restart firewalld"
-
-- name: reload firewalld
-  service:
-    name: firewalld
-    state: reloaded
-    enabled: yes
-    masked: no
-  listen: "reload firewalld"
+  listen: restart php-fpm
 
 - name: restart postfix
   service:
@@ -65,7 +57,7 @@
     state: restarted
     enabled: yes
     masked: no
-  listen: "restart postfix"
+  listen: restart postfix
 
 - name: restart mariadb
   service:
@@ -73,7 +65,7 @@
     state: restarted
     enabled: yes
     masked: no
-  listen: "restart mariadb"
+  listen: restart mariadb
 
 - name: restart dovecot
   service:
@@ -81,4 +73,4 @@
     state: restarted
     enabled: yes
     masked: no
-  listen: "restart dovecot"
+  listen: restart dovecot
