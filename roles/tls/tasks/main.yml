@@ -1,0 +1,90 @@
+- name: copy certificate things 
+  copy: 
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: apache
+    group: apache 
+    mode: '0644'
+  with_items:
+  - src: www_server.crt
+    dest: /etc/pki/tls/certs/www_server.crt
+  - src: www_server.key
+    dest: /etc/pki/tls/private/www_server.key
+  - src: cacert.crt 
+    dest: /etc/pki/tls/certs/cacert.crt
+  notify: restart httpd 
+
+- name: dnf install mode_ssl
+  dnf:
+    name: 'mod_ssl'
+    state: installed
+  notify: restart httpd
+
+- name: add https to firewalld 
+  firewalld:
+    service: https
+    permanent: yes
+    state: enabled
+  notify: restart firewalld
+
+- name: Add 443 to virtual host
+  template:
+    src: "{{ item.src }}"
+    dest: /etc/httpd/conf.d/{{item.dest}}.{{ hostname }}.conf
+    owner: apache
+    group: apache
+    mode: '0644'
+  with_items:
+  - src: vhost_proxy.j2
+    dest: proxy
+  - src: vhost_wordpress.j2
+    dest: wordpress
+  - src: vhost_www.j2
+    dest: www
+  notify: restart httpd 
+
+- name: Open ports 443, 465, 993, 587
+  firewalld:
+    permanent: yes
+    state: enabled
+    port: "{{ item }}/tcp"
+  with_items: 
+  - 443
+  - 465
+  - 993
+  - 587
+  notify: reload firewalld
+
+- name: Edit postfix main.cf config 
+  template:
+    src: main_cf.j2
+    dest: /etc/postfix/main.cf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart postfix
+
+- name: Edit postfix master.cf config 
+  copy:
+    src: master.cf
+    dest: /etc/postfix/master.cf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart postfix  
+
+- name: Edit 10-ssl.conf
+  copy:
+    src: 10-ssl.conf 
+    dest: /etc/dovecot/conf.d/10-ssl.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart dovecot
+
+# just in case
+- name: restart firewalld
+  service:
+    name: firewalld
+    state: restarted
+    enabled: yes
