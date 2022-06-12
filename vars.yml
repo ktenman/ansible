@@ -1,5 +1,5 @@
 ut_dns: 172.17.0.217
-hostname: A73632B
+hostname: a73632c
 domain_name: sa.cs.ut.ee
 timezone: Europe/Tallinn
 mail_to: nagios@scoring.sa.cs.ut.ee
