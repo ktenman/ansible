@@ -1,4 +1,4 @@
-sudo dnf update -y
+#sudo dnf update -y
 sudo dnf install sl -y
 ### install ansible
 sudo dnf install ansible -y
