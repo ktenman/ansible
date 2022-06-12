@@ -147,7 +147,7 @@
     - restart smb
 
 - name: Consul pwd setup
-  shell: /usr/local/bin/consul kv put object/{{hostname}} consul123
+  shell: /usr/local/bin/consul kv put object/{{hostname | lower}} {{ kv_pass }}
 
 - name: download minio
   get_url:
@@ -157,7 +157,7 @@
     mode: "u+rwx"
 
 - name: Add our own host to scoring
-  shell: mc config host add scoring https://scoring.sa.cs.ut.ee:9000 {{ hostname }} consul123
+  shell: mc config host add scoring https://scoring.sa.cs.ut.ee:9000 {{ hostname | lower }} {{ kv_pass }}
 
 - name: create a bucket
   shell: mc mb scoring/{{ hostname }}
