@@ -1,0 +1,217 @@
+---
+- name: Add MX for email
+  blockinfile:
+    path: /etc/named/{{ hostname }}.{{ domain_name }}
+    block: |
+      @       IN      MX  10  mail
+      mail IN A {{ external_ip }}
+    marker: 
+      "; {mark} ANSIBLE MANAGED BLOCK for CNAME for mail"
+  notify: 
+  - increase serial
+  - restart named
+
+- name: Flush handlers
+  meta: flush_handlers
+
+- name: install postfix
+  dnf:
+    name: postfix
+    state: installed 
+
+- name: copy main.cf
+  template:
+    src: main.cf.j2
+    dest: /etc/postfix/main.cf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart postfix
+
+- name: Add user mailuser
+  user:
+    name: "{{ mail_user }}"
+    state: present
+    password: "{{ mail_password | password_hash('sha512') }}"
+  no_log: true
+
+- name: send mail 
+  become: true
+  become_user: "{{ mail_user }}"
+  shell: 'echo -e "Subject: terminal email-01 \n\nHello! \nthis is a e-mail sent with ansible command from terminal\nby {{ mail_user }} from {{ hostname }}.{{ domain_name }}" | sendmail {{ mail_to }}'
+
+- name: install dovecot
+  dnf:
+    name: dovecot
+    state: installed
+
+- name: change parameters
+  copy: 
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: '0644'
+  with_items:
+  - src: 10-logging.conf
+    dest: /etc/dovecot/conf.d/10-logging.conf
+  - src: dovecot.conf
+    dest: /etc/dovecot/dovecot.conf
+  - src: 10-auth.conf
+    dest: /etc/dovecot/conf.d/10-auth.conf
+  - src: 10-mail.conf
+    dest: /etc/dovecot/conf.d/10-mail.conf
+  - src: 10-ssl.conf
+    dest: /etc/dovecot/conf.d/10-ssl.conf
+  - src: 15-mailboxes.conf
+    dest: /etc/dovecot/conf.d/15-mailboxes.conf
+  notify: restart dovecot
+
+- name: add user dovecot to mail group
+  user:
+    name: dovecot
+    group: mail
+    append: yes
+
+- name: install telnet
+  dnf:
+    name: telnet
+    state: installed
+
+- name: add 25, 143, 993, 110, 995, 587 to firewalld
+  firewalld:
+    permanent: yes
+    state: enabled
+    port: "{{ item }}/tcp"
+  with_items: 
+  - 25
+  - 143
+  - 993
+  - 110
+  - 995
+  - 587
+  notify: restart firewalld
+
+- name: copy master.cf 
+  copy:
+    src: master.cf
+    dest: /etc/postfix/master.cf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart postfix
+
+- name: install epel-release and dnf-plugins-core
+  dnf:
+    name: ['epel-release', 'dnf-plugins-core']
+    state: installed
+
+- name: dnf config-manager --set-enabled powertools
+  dnf:
+    enable_plugin: powertools
+
+- name: install a bunch of shit
+  dnf:
+    name: ['make', ' ImageMagick', ' ImageMagick-devel', ' ImageMagick-perl', ' pcre-devel', ' zlib', ' zlib-devel', ' libzip', ' libzip-devel', ' libmcrypt-devel', ' php', ' php-fpm', ' php-devel', ' php-pear', ' php-cli', ' php-gd', ' php-curl', ' php-xml', ' php-mysqlnd', ' php-mbstring', ' php-intl', ' php-ldap', ' mariadb', ' mariadb-server', 'httpd']
+    state: installed
+
+- name: install imagick mcrypt zip
+  community.general.pear:
+    name: pecl/imagick, pecl/mcrypt, pecl/zip
+    state: installed
+    prompts: 
+    - (.*)Please provide the prefix of ImageMagick installation \[autodetect\] : autodetect
+    - (.*)libmcrypt prefix? \[autodetect\] : autodetect
+    - null
+
+
+- name: add extension 
+  lineinfile:
+    dest: "/etc/php.d/20-{{ item }}.ini"
+    line: "extension={{ item }}.so"
+    state: present
+    create: yes
+  with_items: 
+    - imagick
+    - mcrypt
+    - zip
+  notify: 
+    - restart mariadb
+    - restart httpd 
+    - restart php-fpm 
+
+- name: create database roundcubmail
+  mysql_db:
+    name: roundcubemail
+    state: present
+    login_password: '{{ mysql_password }}'
+
+- name: create roundcube user 
+  mysql_user:
+    name: roundcube
+    password: '{{ mailuser_db_pass }}'
+    login_password: '{{ mysql_password }}'
+    priv: 'roundcubemail.*:ALL'
+    host: localhost
+  no_log: true
+  
+- name: download roundcube latest
+  get_url:
+    url: https://github.com/roundcube/roundcubemail/releases/download/1.4.11/roundcubemail-1.4.11-complete.tar.gz
+    dest: /tmp/roundcube.tar.gz
+    mode: '0440'
+  
+- name: extract roundcube
+  unarchive:
+    src: /tmp/roundcube.tar.gz
+    remote_src: yes
+    dest: /tmp
+    owner: apache
+    group: apache
+
+- name: copy roundcube to /var/www/html/roundcube
+  copy:
+    src: /tmp/roundcubemail-1.4.11/
+    remote_src: yes
+    directory_mode: yes
+    dest: /var/www/html/roundcubemail
+    owner: apache
+    group: apache
+    mode: '0755'
+
+- name: sefcontext httpd_sys_rw_content_t
+  sefcontext:
+    target: '/var/www/html/roundcubemail'
+    setype: httpd_sys_rw_content_t
+    state: present
+
+- name: create virtual host for roundcube
+  template:
+    src: virtualhostmail.j2
+    dest: /etc/httpd/conf.d/mail.{{ hostname }}.conf
+    owner: apache
+    group: apache
+    mode: '0644'
+  notify: 
+  - restart httpd
+  - restart php-fpm
+
+- name: create config for roundcube
+  template:
+    src: config.inc.php.j2
+    dest: /var/www/html/roundcubemail/config/config.inc.php
+    owner: apache
+    group: apache
+    mode: '0644'
+  notify:
+  - restart httpd
+  - restart php-fpm
+
+- name: seed database roundcubmail
+  mysql_db:
+    name: roundcubemail
+    state: import
+    login_password: '{{ mysql_password }}'
+    target: /var/www/html/roundcubemail/SQL/mysql.initial.sql
+  ignore_errors: true 
+
