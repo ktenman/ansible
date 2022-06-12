@@ -168,12 +168,12 @@
 - name: create scoringtestfile
   lineinfile:
     path: /tmp/scoringtestfile
-    line: "{{ hostname }}"
+    line: "{{ hostname | lower }}"
     state: present
     create: yes
 
 - name: add scoringtestfile into the uppermost path in your bucket.
-  shell: mc cp /tmp/scoringtestfile scoring/{{ hostname }}/scoringtestfile
+  shell: mc cp /tmp/scoringtestfile scoring/{{ hostname | lower }}/scoringtestfile
 
 - name: restart firewalld
   service:
