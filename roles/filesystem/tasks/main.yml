@@ -1,23 +1,30 @@
-- name: Create a new extended partition with a size of 1GiB
-  community.general.parted:
-    device: /dev/sdb
-    number: 1
-    part_type: extended
-    state: present
-    part_start: 2048s
-    part_end: 2097151s
+- name: Install the following packages - samba samba-common samba-client cifs-utils
+  dnf:
+    name: ['nfs-utils', 'samba', 'samba-common', 'samba-client', 'cifs-utils']
+    state: latest
+  notify: restart nfs-server
 
-- name: Create two logical partitions
+- name: create one exetended and two logical partitions
   community.general.parted:
     device: /dev/sdb
     number: '{{ item.number }}'
-    part_type: logical
     state: present
+    part_type: '{{ item.part_type }}'
     part_start: '{{ item.start }}'
     part_end: '{{ item.end }}'
   with_items:
-    - { number: 5, start: 4096s, end: 1048574s }
-    - { number: 6, start: 1050624s, end: 2097151s }
+    - number: 1
+      part_type: extended
+      start: 2048s
+      end: 2097151s
+    - number: 5
+      part_type: logical
+      start: 4096s
+      end: 1048574s
+    - number: 6
+      part_type: logical
+      start: 1050624s
+      end: 2097151s
 
 - name: Create a ext4 filesystem on /dev/sdb5
   community.general.filesystem:
@@ -108,11 +115,6 @@
     - 2049
   notify: restart firewalld
 
-- name: Install the following packages - samba samba-common samba-client cifs-utils
-  dnf:
-    name: [ "samba", "samba-common", "samba-client", "cifs-utils" ]
-    state: installed
-
 - name: Create a samba_group
   group:
     name: samba_group
@@ -179,7 +181,7 @@
   notify: restart firewalld
 
 - name: Consul pwd setup
-  shell: /usr/local/bin/consul kv put object/{{hostname}} consul123
+  shell: /usr/local/bin/consul kv put object/{{ hostname }} {{ kv_pass }}
 
 - name: download minio
   get_url:
@@ -189,7 +191,7 @@
     mode: "u+rwx"
 
 - name: Add our own host to scoring
-  shell: mc config host add scoring https://scoring.sa.cs.ut.ee:9000 {{ hostname }} consul123
+  shell: sudo mc config host add scoring https://scoring.sa.cs.ut.ee:9000 {{ hostname }} {{ kv_pass }}
 
 - name: create a bucket
   shell: mc mb scoring/{{ hostname }}
