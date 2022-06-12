@@ -173,7 +173,7 @@
     create: yes
 
 - name: add scoringtestfile into the uppermost path in your bucket.
-  shell: mc cp /tmp/scoringtestfile scoring/{{ hostname | lower }}/scoringtestfile
+  shell: mc cp /tmp/scoringtestfile scoring/{{ hostname }}/scoringtestfile
 
 - name: restart firewalld
   service:
