@@ -53,8 +53,8 @@
     state: enabled
     port: 6443/tcp
   notify:
-  - reload firewalld
-  - restart firewalld
+    - reload firewalld
+    - restart firewalld
 
 - name: Create the lab11 namespace
   kubernetes.core.k8s:
