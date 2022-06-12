@@ -1,0 +1,84 @@
+- name: increment serial
+  shell: awk -i inplace '{ if ( $0 ~ /Serial/ ) $1=$1+1; print}' /etc/named/{{ hostname }}.{{ domain_name }}
+  listen: "increment serial"
+
+- name: restart httpd
+  systemd:
+    daemon_reload: yes
+    name: httpd
+    state: restarted
+    enabled: yes
+    masked: no
+  listen: "restart httpd"
+
+- name: restart named
+  service:
+    name: named
+    state: restarted
+    enabled: yes
+    masked: no
+  listen: "restart named"
+
+- name: restart firewalld
+  service:
+    name: firewalld
+    state: restarted
+    enabled: yes
+    masked: no
+  listen: "restart firewalld"
+
+- name: Enable and start/restart the Apache webserver
+  service:
+    name: httpd
+    enabled: yes
+    state: restarted
+    masked: no
+  listen: "restart httpd"
+
+- name: restart php-fpm
+  service:
+    name: php-fpm
+    state: restarted
+    enabled: yes
+    masked: no
+  listen: "restart php-fpm"
+
+- name: restart firewalld
+  service:
+    name: firewalld
+    state: restarted
+    enabled: yes
+    masked: no
+  listen: "restart firewalld"
+
+- name: reload firewalld
+  service:
+    name: firewalld
+    state: reloaded
+    enabled: yes
+    masked: no
+  listen: "reload firewalld"
+
+- name: restart postfix
+  service:
+    name: postfix
+    state: restarted
+    enabled: yes
+    masked: no
+  listen: "restart postfix"
+
+- name: restart mariadb
+  service:
+    name: mariadb
+    state: restarted
+    enabled: yes
+    masked: no
+  listen: "restart mariadb"
+
+- name: restart dovecot
+  service:
+    name: dovecot
+    state: restarted
+    enabled: yes
+    masked: no
+  listen: "restart dovecot"
