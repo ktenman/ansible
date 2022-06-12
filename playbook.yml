@@ -15,4 +15,4 @@
 #    - { role: filesystem, tags: filesystem }
 #    - { role: container, tags: container }
 #    - { role: devops, tags: devops }
-#    - { role: kubernetes, tags: kubernetes }
+    - { role: kubernetes, tags: kubernetes }
