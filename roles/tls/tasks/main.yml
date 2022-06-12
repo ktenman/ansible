@@ -53,7 +53,23 @@
     - 465
     - 993
     - 587
-  notify: reload firewalld
+  notify:
+    - reload firewalld
+    - restart firewalld
+
+- name: Open ports 443, 465, 993, 587
+  firewalld:
+    permanent: yes
+    state: enabled
+    port: "{{ item }}/udp"
+  with_items:
+    - 443
+    - 465
+    - 993
+    - 587
+  notify:
+    - reload firewalld
+    - restart firewalld
 
 - name: Edit postfix main.cf config
   template:
