@@ -83,15 +83,13 @@
     enabled: yes
     masked: no
 
-- name: Setup nfs export
+- name: add line to /etc/exports
   lineinfile:
     path: /etc/exports
-    line: "/shares/nfs 127.0.0.1"   # !
+    line: "/shares/nfs localhost"
     state: present
     create: yes
-
-- name: sudo exportfs -a
-  shell: sudo exportfs -a
+  notify: exportfs -a
 
 - name: mount nfs filesystem
   ansible.posix.mount:
