@@ -9,4 +9,3 @@ ansible-galaxy collection install community.docker
 ansible-galaxy collection install community.kubernetes
 ansible-galaxy collection install cloud.common
 ansible-galaxy collection install kubernetes.core
-sh generate-keys.sh
