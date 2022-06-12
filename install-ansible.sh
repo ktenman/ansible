@@ -1,5 +1,7 @@
 sudo dnf update -y
-sudo dnf install sl ansible -y
+sudo dnf install sl -y
+### install ansible
+sudo dnf install ansible -y
 ansible-galaxy collection install ansible.posix
 ansible-galaxy collection install community.mysql
 ansible-galaxy collection install community.general

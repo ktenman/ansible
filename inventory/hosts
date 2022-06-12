@@ -1,3 +1,5 @@
 [localhost]
-
 localhost
+
+[sysadmin]
+centos@localhost ansible_user=centos
