@@ -66,6 +66,13 @@
 - name: sudo systemctl daemon-reload
   shell: sudo systemctl daemon-reload
 
+- name: Reload systemctl service files systemctl daemon-reload
+  systemd:
+    daemon_reload: yes
+    name: proxy
+    state: started
+    enabled: yes
+
 - name: dnf install nfs-utils
   dnf:
     name: nfs-utils
