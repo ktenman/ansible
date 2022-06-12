@@ -83,14 +83,17 @@
     group: named
     mode: '0644'
   notify: restart bind
-#
-#- name: Get OpenStack metadata
-#  uri:
-#    url: http://169.254.169.254/latest/meta-data/public-ipv4
-#    method: GET
-#    status_code: 200
-#    return_content: yes
-#  register: cloud_metadata
+
+- name: Get OpenStack metadata
+  uri:
+    url: http://169.254.169.254/latest/meta-data/public-ipv4
+    method: GET
+    status_code: 200
+    return_content: yes
+  register: cloud_metadata
+
+- name: Print IP address
+  debug: var=cloud_metadata.content
 
 - name: Add zone file
   template:
