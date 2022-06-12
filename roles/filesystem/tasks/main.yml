@@ -146,15 +146,15 @@
   notify:
     - restart smb
 
-- name: put password
-  shell: /usr/local/bin/consul kv put object/c18235 "{{ kv_pass }}"
+- name: Consul pwd setup
+  shell: /usr/local/bin/consul kv put object/{{hostname}} consul123
 
-- name: download minio client
+- name: download minio
   get_url:
     url: https://dl.min.io/client/mc/release/linux-amd64/mc
     dest: /usr/bin/mc
     owner: root
-    mode: 'u+rwx'
+    mode: "u+rwx"
 
 - name: Add our own host to scoring
   shell: mc config host add scoring https://scoring.sa.cs.ut.ee:9000 {{ hostname }} consul123
