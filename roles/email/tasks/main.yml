@@ -22,7 +22,7 @@
     dest: /etc/postfix/main.cf
     owner: root
     group: root
-    mode: '0644'
+    mode: 0644
   notify: restart postfix
 
 - name: Add user mailuser
@@ -95,7 +95,7 @@
     dest: /etc/postfix/master.cf
     owner: root
     group: root
-    mode: '0644'
+    mode: 0644
   notify: restart postfix
 
 - name: install epel-release and dnf-plugins-core
@@ -171,7 +171,7 @@
   get_url:
     url: https://github.com/roundcube/roundcubemail/releases/download/1.4.11/roundcubemail-1.4.11-complete.tar.gz
     dest: /tmp/roundcube.tar.gz
-    mode: '0440'
+    mode: 0440
   
 - name: extract roundcube
   unarchive:
@@ -189,7 +189,7 @@
     dest: /var/www/html/roundcubemail
     owner: apache
     group: apache
-    mode: '0755'
+    mode: 0755
 
 - name: sefcontext httpd_sys_rw_content_t
   sefcontext:
@@ -203,7 +203,7 @@
     dest: /etc/httpd/conf.d/mail.{{ hostname }}.conf
     owner: apache
     group: apache
-    mode: '0644'
+    mode: 0644
   notify: 
   - restart httpd
   - restart php-fpm
@@ -214,7 +214,7 @@
     dest: /var/www/html/roundcubemail/config/config.inc.php
     owner: apache
     group: apache
-    mode: '0644'
+    mode: 0644
   notify:
   - restart httpd
   - restart php-fpm
