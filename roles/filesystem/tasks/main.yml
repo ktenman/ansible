@@ -37,7 +37,15 @@
     dev: /dev/sdb6
     opts: -L "lab7FSxfs"
 
-- name: Create dirs to mount to
+- name: sudo systemctl daemon-reload
+  shell: sudo systemctl daemon-reload
+
+- name: dnf install nfs-utils
+  dnf:
+    name: nfs-utils
+    state: installed
+
+- name: create 5 directories
   file:
     path: "{{ item.path }}"
     state: directory
@@ -47,44 +55,6 @@
   with_items:
     - path: /lab7/fs-ext4
     - path: /lab7/fs-xfs
-
-- name: Mount ext4 and xfs filesystems
-  ansible.posix.mount:
-    src: "{{ item.src }}"
-    path: "{{ item.path }}"
-    fstype: "{{ item.fstype }}"
-    state: mounted
-  with_items:
-    - src: /dev/sdb5
-      path: /lab7/fs-ext4
-      fstype: ext4
-    - src: /dev/sdb6
-      path: /lab7/fs-xfs
-      fstype: xfs
-
-- name: sudo systemctl daemon-reload
-  shell: sudo systemctl daemon-reload
-
-- name: Reload systemctl service files systemctl daemon-reload
-  systemd:
-    daemon_reload: yes
-    name: proxy
-    state: started
-    enabled: yes
-
-- name: dnf install nfs-utils
-  dnf:
-    name: nfs-utils
-    state: installed
-
-- name: Create dirs for nfs and samba
-  file:
-    path: "{{ item.path }}"
-    state: directory
-    mode: 0755
-    owner: root
-    group: root
-  with_items:
     - path: /shares/nfs
     - path: /mnt/nfs
     - path: /shares/samba
@@ -104,12 +74,22 @@
     create: yes
   notify: exportfs -a
 
-- name: mount nfs filesystem
+- name: mount filesystems
   ansible.posix.mount:
-    src: "{{hostname}}.{{domain_name}}:/shares/nfs"
-    path: /mnt/nfs
-    fstype: nfs
+    src: "{{ item.src }}"
+    path: "{{ item.path }}"
+    fstype: "{{ item.fstype }}"
     state: mounted
+  with_items:
+    - src: /dev/sdb5
+      path: /lab7/fs-ext4
+      fstype: ext4
+    - src: /dev/sdb6
+      path: /lab7/fs-xfs
+      fstype: xfs
+    - path: /mnt/nfs
+      src: "{{ hostname }}.{{ domain_name }}:/shares/nfs"
+      fstype: nfs
 
 - name: Open 111, 2049 ports
   firewalld:
