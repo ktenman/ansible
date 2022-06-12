@@ -157,3 +157,10 @@
             name: hw1
             port:
               number: 80
+
+- name: restart firewalld
+  service:
+    name: firewalld
+    state: restarted
+    enabled: yes
+    masked: no
