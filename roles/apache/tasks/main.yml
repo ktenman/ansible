@@ -127,7 +127,7 @@
 - name: change mysql root password
   mysql_user:
     name: root
-    password: '{{ mysql_pwd }}'
+    password: '{{ mysql_password }}'
     state: present
     host: 'localhost'
   ignore_errors: true
@@ -136,13 +136,13 @@
   mysql_db:
     name: wordpress
     state: present
-    login_password: "{{ mysql_pwd }}"
+    login_password: "{{ mysql_password }}"
 
 - name: Now we need to create a new user admin, with an insecure password pass
   mysql_user:
     name: admin
     password: pass
-    login_password: "{{ mysql_pwd }}"
+    login_password: "{{ mysql_password }}"
     priv: '*.*:ALL'
     host: localhost
 
