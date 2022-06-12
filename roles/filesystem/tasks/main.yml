@@ -2,7 +2,6 @@
   dnf:
     name: ['nfs-utils', 'samba', 'samba-common', 'samba-client', 'cifs-utils']
     state: latest
-  notify: restart nfs-server
 
 - name: create one exetended and two logical partitions
   community.general.parted:
