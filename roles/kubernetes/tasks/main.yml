@@ -90,6 +90,3 @@
     state: present
     generate_name: ingress-
     src: /tmp/ingress.yml
-
-- name: restart firewalld
-  notify: restart firewalld
