@@ -168,7 +168,7 @@
 - name: create scoringtestfile
   lineinfile:
     path: /tmp/scoringtestfile
-    line: "{{ hostname | lower }}"
+    line: "{{ hostname }}"
     state: present
     create: yes
 
