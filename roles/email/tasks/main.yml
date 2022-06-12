@@ -129,8 +129,9 @@
 
 - name: install 'make', 'ImageMagick', 'ImageMagick-devel', 'ImageMagick-perl', 'pcre-devel', 'zlib', ' zlib-devel'
   dnf:
-    name: ['make', 'ImageMagick', 'ImageMagick-devel', 'pcre-devel', 'zlib', ' zlib-devel']
+    name: ['make', 'ImageMagick', 'ImageMagick-devel', 'ImageMagick-perl', 'pcre-devel', 'zlib', ' zlib-devel']
     state: installed
+  ignore_errors: true
 
 - name: install 'libzip', 'libzip-devel', 'libmcrypt-devel'
   dnf:
