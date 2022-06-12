@@ -90,8 +90,8 @@
     state: present
     create: yes
 
-- name: run exportfs -a
-  command: exportfs -a
+- name: sudo exportfs -a
+  shell: sudo exportfs -a
 
 - name: mount nfs filesystem
   ansible.posix.mount:
