@@ -4,13 +4,13 @@
     method: GET
     status_code: 200
     return_content: yes
-  register: cloud_metadata
+  register: external_ip
 - name: Add MX for email
   blockinfile:
     path: /etc/named/{{ hostname }}.{{ domain_name }}
     block: |
       @       IN      MX  10  mail
-      mail IN A {{ cloud_metadata.content }}
+      mail IN A {{ external_ip.content }}
     marker:
       "; {mark} ANSIBLE MANAGED BLOCK for CNAME for mail"
   notify:

@@ -100,10 +100,10 @@
     method: GET
     status_code: 200
     return_content: yes
-  register: cloud_metadata
+  register: external_ip
 
 - name: Print IP address
-  debug: var=cloud_metadata.content
+  debug: var=external_ip.content
 
 - name: Add zone file
   template:
@@ -135,8 +135,8 @@
 
 - name: Get reverse ip
   set_fact:
-    reverse_ip: "{{ cloud_metadata.content.split('.')[0:3] | reverse | join('.') }}"
-    last_octet: "{{ cloud_metadata.content.split('.')[-1] }}"
+    reverse_ip: "{{ external_ip.content.split('.')[0:3] | reverse | join('.') }}"
+    last_octet: "{{ external_ip.content.split('.')[-1] }}"
 
 - name: Copy reverse zone file
   template:
