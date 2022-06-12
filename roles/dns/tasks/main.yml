@@ -9,7 +9,7 @@
     permanent: yes
     state: enabled
 
-- name: Add 8301/udp service
+- name: Open 8301 port
   firewalld:
     port: "{{ item }}"
     permanent: yes
