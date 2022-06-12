@@ -8,8 +8,11 @@
     marker: 
       "; {mark} ANSIBLE MANAGED BLOCK for CNAME for mail"
   notify: 
-  - increase serial
+  - increment serial
   - restart named
+
+- name: Flush handlers
+  meta: flush_handlers
 
 - name: install postfix
   dnf:
@@ -31,6 +34,9 @@
     state: present
     password: "{{ mail_password }}"
   no_log: true
+
+- name: Flush handlers
+  meta: flush_handlers
 
 - name: send mail 
   become: true
