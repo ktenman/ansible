@@ -1,9 +1,9 @@
 ut_dns: 172.17.0.217
-hostname: A73632B
+hostname: a73632
 domain_name: sa.cs.ut.ee
 timezone: Europe/Tallinn
 mail_to: nagios@scoring.sa.cs.ut.ee
-external_ip: 172.17.90.113
+external_ip: 172.17.91.219
 
 notify_server: 172.17.66.228
 my_name: Konstantin Tenman
