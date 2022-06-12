@@ -1,47 +1,37 @@
----
-- name: install nfs-utils and samba
-  dnf:
-    name: ['nfs-utils', 'samba', 'samba-common', 'samba-client', 'cifs-utils']
-    state: latest
-  notify: restart nfs-server
+- name: Create a new extended partition with a size of 1GiB
+  community.general.parted:
+    device: /dev/sdb
+    number: 1
+    part_type: extended
+    state: present
+    part_start: 2048s
+    part_end: 2097151s
 
-- name: create 2 logical partitions
+- name: Create two logical partitions
   community.general.parted:
     device: /dev/sdb
     number: '{{ item.number }}'
+    part_type: logical
     state: present
-    part_type: "{{ item.part_type }}"
     part_start: '{{ item.start }}'
     part_end: '{{ item.end }}'
   with_items:
-    - number: 1
-      part_type: extended
-      start: 2048s
-      end: 2097151s
-    - number: 5
-      part_type: logical
-      start: 4096s
-      end: 1048574s
-    - number: 6
-      part_type: logical
-      start: 1050624s
-      end: 2097151s
+    - { number: 5, start: 4096s, end: 1048574s }
+    - { number: 6, start: 1050624s, end: 2097151s }
 
-- name: create ext4 and xfs filesystems
+- name: Create a ext4 filesystem on /dev/sdb5
   community.general.filesystem:
-    fstype: "{{ item.fstype }}"
-    state: present
-    dev: "{{ item.dev }}"
-    opts: "{{ item.opts }}"
-  with_items:
-    - dev: /dev/sdb5
-      fstype: ext4
-      opts: -L "lab7FSext4"
-    - dev: /dev/sdb6
-      fstype: xfs
-      opts: -L "lab7FSxfs"
+    fstype: ext4
+    dev: /dev/sdb5
+    opts: -L "lab7FSext4"
 
-- name: create 5 directories
+- name: Create an xfs filesystem on /dev/sdb6
+  community.general.filesystem:
+    fstype: xfs
+    dev: /dev/sdb6
+    opts: -L "lab7FSxfs"
+
+- name: Create dirs to mount to
   file:
     path: "{{ item.path }}"
     state: directory
@@ -51,24 +41,8 @@
   with_items:
     - path: /lab7/fs-ext4
     - path: /lab7/fs-xfs
-    - path: /shares/nfs
-    - path: /mnt/nfs
-    - path: /shares/samba
 
-- name: Setup nfs export to /etc/exports
-  lineinfile:
-    path: /etc/exports
-    line: "/shares/nfs localhost"
-    state: present
-    create: yes
-
-- name: run exportfs -a
-  command: exportfs -a
-
-- name: flush handlers
-  meta: flush_handlers
-
-- name: mount filesystems
+- name: Mount ext4 and xfs filesystems
   ansible.posix.mount:
     src: "{{ item.src }}"
     path: "{{ item.path }}"
@@ -81,63 +55,96 @@
     - src: /dev/sdb6
       path: /lab7/fs-xfs
       fstype: xfs
+
+- name: systemctl daemon-reload
+  systemd:
+    name: systemctl
+    state: reloaded
+    enabled: yes
+    masked: no
+
+- name: dnf install nfs-utils
+  dnf:
+    name: nfs-utils
+    state: installed
+
+- name: Create dirs for nfs and samba
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+  with_items:
+    - path: /shares/nfs
     - path: /mnt/nfs
-      src: "{{ hostname }}.{{ domain_name }}:/shares/nfs"
-      fstype: nfs
+    - path: /shares/samba
 
-- name: add TCP 111, 139, 445, and 2049 to firewalld
+- name: restart nfs-server
+  service:
+    name: nfs-server
+    state: restarted
+    enabled: yes
+    masked: no
+
+- name: Setup nfs export
+  lineinfile:
+    path: /etc/exports
+    line: "/shares/nfs 127.0.0.1"   # !
+    state: present
+    create: yes
+
+- name: run exportfs -a
+  command: exportfs -a
+
+- name: mount nfs filesystem
+  ansible.posix.mount:
+    src: "{{hostname}}.{{domain_name}}:/shares/nfs"
+    path: /mnt/nfs
+    fstype: nfs
+    state: mounted
+
+- name: Open 111, 2049 ports
   firewalld:
-    permanent: yes
-    state: enabled
     port: "{{ item }}/tcp"
-  with_items:
-    - 111
-    - 139
-    - 445
-    - 2049
-  notify:
-    - reload firewalld
-    - restart firewalld
-
-- name: add UDP 111, 139, 445, and 2049 to firewalld
-  firewalld:
     permanent: yes
     state: enabled
-    port: "{{ item }}/udp"
   with_items:
     - 111
-    - 139
-    - 445
     - 2049
-  notify:
-    - reload firewalld
-    - restart firewalld
+  notify: restart firewalld
 
-- name: Ensure group "samba_group" exists
-  ansible.builtin.group:
+- name: Install the following packages - samba samba-common samba-client cifs-utils
+  dnf:
+    name: [ "samba", "samba-common", "samba-client", "cifs-utils" ]
+    state: installed
+
+- name: Create a samba_group
+  group:
     name: samba_group
     state: present
 
-- name: add scoring and centos user to the group
+- name: usermod -a -G samba_group scoring
   user:
-    name: "{{ item }}"
+    name: scoring
     groups: samba_group
     append: yes
-  with_items:
-    - scoring
-    - centos
 
-- name: add scoring and centos user to smb
-  shell: printf "{{ item.pass }}\n{{ item.pass }}" | smbpasswd -a -s {{ item.user }}
+- name: usermod -a -G samba_group centos
+  user:
+    name: centos
+    groups: samba_group
+    append: yes
+
+- name: set Samba passwords for each user
+  shell: "printf '{{ item.passwd }}\n{{ item.passwd }}\n' | smbpasswd -s -a {{ item.name }}"
   register: output
   changed_when: '"Added user" in output.stdout'
   with_items:
-    - user: centos
-      pass: smb_pass.centos
-    - user: scoring
-      pass: smb_pass.scoring
+    - name: scoring
+      passwd: 2daysuperadmin
 
-- name: change /shares/samba permissions
+- name: set samba permissions
   file:
     path: /shares/samba
     state: directory
@@ -146,24 +153,39 @@
     group: samba_group
     recurse: yes
 
-- name: sefcontext samba_share_t
+- name: set sefcontext samba_share_t
   sefcontext:
-    target: '/shares/samba'
+    target: "/shares/samba"
     setype: samba_share_t
     state: present
 
-- name: add smb block to /etc/samba/smb.conf
+- name: Edit /etc/samba/smb.conf
   copy:
-    dest: /etc/samba/smb.conf
     src: smb.conf
+    dest: /etc/samba/smb.conf
+    mode: '0644'
     owner: root
     group: root
-    mode: 0644
-  notify:
-    - restart smb
+
+- name: restart smb
+  service:
+    name: smb
+    state: restarted
+    enabled: yes
+    masked: no
+
+- name: Open 139, 445 ports
+  firewalld:
+    port: "{{ item }}/tcp"
+    permanent: yes
+    state: enabled
+  with_items:
+    - 139
+    - 445
+  notify: restart firewalld
 
 - name: Consul pwd setup
-  shell: /usr/local/bin/consul kv put object/{{hostname | lower}} {{ kv_pass }}
+  shell: /usr/local/bin/consul kv put object/{{hostname}} consul123
 
 - name: download minio
   get_url:
@@ -173,10 +195,10 @@
     mode: "u+rwx"
 
 - name: Add our own host to scoring
-  shell: sudo mc config host add scoring https://scoring.sa.cs.ut.ee:9000 {{ hostname | lower }} {{ kv_pass }}
+  shell: mc config host add scoring https://scoring.sa.cs.ut.ee:9000 {{ hostname }} consul123
 
 - name: create a bucket
-  shell: mc mb scoring/{{ hostname | lower }}
+  shell: mc mb scoring/{{ hostname }}
   register: output
   changed_when: '"Bucket created successfully" in output.stdout'
   ignore_errors: true
@@ -184,12 +206,12 @@
 - name: create scoringtestfile
   lineinfile:
     path: /tmp/scoringtestfile
-    line: "{{ hostname | lower }}"
+    line: "{{ hostname }}"
     state: present
     create: yes
 
 - name: add scoringtestfile into the uppermost path in your bucket.
-  shell: mc cp /tmp/scoringtestfile scoring/{{ hostname | lower }}/scoringtestfile
+  shell: mc cp /tmp/scoringtestfile scoring/{{ hostname }}/scoringtestfile
 
 - name: restart firewalld
   service:
