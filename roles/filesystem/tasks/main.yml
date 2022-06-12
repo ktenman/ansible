@@ -85,7 +85,7 @@
       src: "{{ hostname }}.{{ domain_name }}:/shares/nfs"
       fstype: nfs
 
-- name: add 111 and 2049 to firewalld
+- name: add TCP 111, 139, 445, and 2049 to firewalld
   firewalld:
     permanent: yes
     state: enabled
@@ -95,7 +95,23 @@
     - 139
     - 445
     - 2049
-  notify: restart firewalld
+  notify:
+    - reload firewalld
+    - restart firewalld
+
+- name: add UDP 111, 139, 445, and 2049 to firewalld
+  firewalld:
+    permanent: yes
+    state: enabled
+    port: "{{ item }}/udp"
+  with_items:
+    - 111
+    - 139
+    - 445
+    - 2049
+  notify:
+    - reload firewalld
+    - restart firewalld
 
 - name: Ensure group "samba_group" exists
   ansible.builtin.group:
