@@ -25,7 +25,7 @@
     state: restarted
     enabled: yes
     masked: no
-  listen: "restart firewalld"
+  listen: restart firewalld
 
 - name: Enable and start/restart the Apache webserver
   service:
