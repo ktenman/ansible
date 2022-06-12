@@ -13,9 +13,9 @@ spec:
       labels:
         app: my-deployment
     spec:
-     containers:
-     - name: my-deployment
-       image: "registry.hpc.ut.ee/sysadmincourse-dev/hello-world:1.0"
-       ports:
-       - containerPort: 5000
-       imagePullPolicy: Never
+      containers:
+        - name: my-deployment
+          image: "registry.hpc.ut.ee/sysadmincourse-dev/hello-world:1.0"
+          ports:
+            - containerPort: 5000
+          imagePullPolicy: Never

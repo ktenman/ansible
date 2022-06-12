@@ -7,32 +7,32 @@
     mode: 0755
     owner: root
     group: root
-  with_items:   
+  with_items:
     - /var/lib/rancher/k3s/server/manifests
     - /root/.kube
 
-- name: Move traefik-config 
-  copy: 
+- name: Move traefik-config
+  copy:
     src: traefik-config.yaml
     dest: /var/lib/rancher/k3s/server/manifests/
     owner: root
     group: root
     mode: 0755
 
-- name: install kubernetes 
-  shell: 
+- name: install kubernetes
+  shell:
     warn: false
     cmd: "curl -sfL https://get.k3s.io | sh -s -"
   register: k3s_install
   changed_when: "'No change detected so skipping service start' not in k3s_install.stdout"
 
 - name: install required packages
-  pip: 
+  pip:
     name: ['openshift', 'pyyaml', 'kubernetes']
     state: present
 
-- name: copy config 
-  copy: 
+- name: copy config
+  copy:
     src: /etc/rancher/k3s/k3s.yaml
     dest: /root/.kube/config
     owner: root
@@ -61,32 +61,97 @@
     state: present
     api_version: v1
 
-- name: copying files with playbook
-  copy:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    owner: root
-    group: root 
-    mode: 0644
-  with_items:
-  - { src: "deployment.yml", dest: "/tmp/deployment.yml" }
-  - { src: "service.yml", dest: "/tmp/service.yml" }
-  - { src: "ingress.yml", dest: "/tmp/ingress.yml" }
+#- name: copying files with playbook
+#  copy:
+#    src: "{{ item.src }}"
+#    dest: "{{ item.dest }}"
+#    owner: root
+#    group: root
+#    mode: 0644
+#  with_items:
+#  - { src: "deployment.yml", dest: "/tmp/deployment.yml" }
+#  - { src: "service.yml", dest: "/tmp/service.yml" }
+#  - { src: "ingress.yml", dest: "/tmp/ingress.yml" }
+#
+#- name: Create a deployment
+#  kubernetes.core.k8s:
+#    state: present
+#    generate_name: deployment-
+#    src: /tmp/deployment.yml
+#
+#- name: create a service
+#  kubernetes.core.k8s:
+#    state: present
+#    generate_name: service-
+#    src: /tmp/service.yml
+#
+#- name: create an ingress
+#  kubernetes.core.k8s:
+#    state: present
+#    generate_name: ingress-
+#    src: /tmp/ingress.yml
 
-- name: Create a deployment
+- name: create deployment
   kubernetes.core.k8s:
     state: present
     generate_name: deployment-
-    src: /tmp/deployment.yml
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: hw1
+        namespace: lab11
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: hw1
+        template:
+          metadata:
+            labels:
+              app: hw1
+          spec:
+            containers:
+              - name: hw1
+                image: "registry.hpc.ut.ee/sysadmincourse-dev/hello-world:1.0"
+                ports:
+                  - containerPort: 5000
+                imagePullPolicy: Never
 
 - name: create a service
   kubernetes.core.k8s:
     state: present
     generate_name: service-
-    src: /tmp/service.yml
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: hw1
+        namespace: lab11
+      spec:
+        type: NodePort
+        ports:
+          - port: 5000
+            targetPort: 80
+            protocol: TCP
+        selector:
+          app: hw1
 
 - name: create an ingress
   kubernetes.core.k8s:
     state: present
     generate_name: ingress-
-    src: /tmp/ingress.yml
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: hw1
+        namespace: lab11
+        annotations:
+          kubernetes.io/ingress.class: "traefik"
+      spec:
+        defaultBackend:
+          service:
+            name: hw1
+            port:
+              number: 80

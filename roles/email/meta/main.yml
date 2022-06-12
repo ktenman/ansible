@@ -1,2 +1,2 @@
 dependencies:
-- role: my-handlers
+  - role: my-handlers

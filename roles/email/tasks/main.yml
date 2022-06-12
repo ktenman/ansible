@@ -5,11 +5,11 @@
     block: |
       @       IN      MX  10  mail
       mail IN A {{ external_ip }}
-    marker: 
+    marker:
       "; {mark} ANSIBLE MANAGED BLOCK for CNAME for mail"
-  notify: 
-  - increment serial
-  - restart named
+  notify:
+    - increment serial
+    - restart named
 
 - name: Flush handlers
   meta: flush_handlers
@@ -17,7 +17,7 @@
 - name: install postfix
   dnf:
     name: postfix
-    state: installed 
+    state: installed
 
 - name: copy main.cf
   template:
@@ -38,7 +38,7 @@
 - name: Flush handlers
   meta: flush_handlers
 
-- name: send mail 
+- name: send mail
   become: true
   become_user: "{{ mail_user }}"
   shell: 'echo -e "Subject: terminal email-01 \n\nHello! \nthis is a e-mail sent with ansible command from terminal\nby {{ mail_user }} from {{ hostname }}.{{ domain_name }}" | sendmail {{ mail_to }}'
@@ -49,25 +49,25 @@
     state: installed
 
 - name: change parameters
-  copy: 
+  copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
     owner: root
     group: root
     mode: '0644'
   with_items:
-  - src: 10-logging.conf
-    dest: /etc/dovecot/conf.d/10-logging.conf
-  - src: dovecot.conf
-    dest: /etc/dovecot/dovecot.conf
-  - src: 10-auth.conf
-    dest: /etc/dovecot/conf.d/10-auth.conf
-  - src: 10-mail.conf
-    dest: /etc/dovecot/conf.d/10-mail.conf
-  - src: 10-ssl.conf
-    dest: /etc/dovecot/conf.d/10-ssl.conf
-  - src: 15-mailboxes.conf
-    dest: /etc/dovecot/conf.d/15-mailboxes.conf
+    - src: 10-logging.conf
+      dest: /etc/dovecot/conf.d/10-logging.conf
+    - src: dovecot.conf
+      dest: /etc/dovecot/dovecot.conf
+    - src: 10-auth.conf
+      dest: /etc/dovecot/conf.d/10-auth.conf
+    - src: 10-mail.conf
+      dest: /etc/dovecot/conf.d/10-mail.conf
+    - src: 10-ssl.conf
+      dest: /etc/dovecot/conf.d/10-ssl.conf
+    - src: 15-mailboxes.conf
+      dest: /etc/dovecot/conf.d/15-mailboxes.conf
   notify: restart dovecot
 
 - name: add user dovecot to mail group
@@ -86,13 +86,13 @@
     permanent: yes
     state: enabled
     port: "{{ item }}/tcp"
-  with_items: 
-  - 25
-  - 143
-  - 993
-  - 110
-  - 995
-  - 587
+  with_items:
+    - 25
+    - 143
+    - 993
+    - 110
+    - 995
+    - 587
   notify: restart firewalld
 
 - name: add udp 25, 143, 993, 110, 995, 587 to firewalld
@@ -109,7 +109,7 @@
     - 587
   notify: restart firewalld
 
-- name: copy master.cf 
+- name: copy master.cf
   copy:
     src: master.cf
     dest: /etc/postfix/master.cf
@@ -151,26 +151,26 @@
   community.general.pear:
     name: pecl/imagick, pecl/mcrypt, pecl/zip
     state: installed
-    prompts: 
-    - (.*)Please provide the prefix of ImageMagick installation \[autodetect\] : autodetect
-    - (.*)libmcrypt prefix? \[autodetect\] : autodetect
-    - null
+    prompts:
+      - (.*)Please provide the prefix of ImageMagick installation \[autodetect\]: autodetect
+      - (.*)libmcrypt prefix? \[autodetect\]: autodetect
+      - null
 
 
-- name: add extension 
+- name: add extension
   lineinfile:
     dest: "/etc/php.d/20-{{ item }}.ini"
     line: "extension={{ item }}.so"
     state: present
     create: yes
-  with_items: 
+  with_items:
     - imagick
     - mcrypt
     - zip
-  notify: 
+  notify:
     - restart mariadb
-    - restart httpd 
-    - restart php-fpm 
+    - restart httpd
+    - restart php-fpm
 
 - name: create database roundcubmail
   mysql_db:
@@ -178,7 +178,7 @@
     state: present
     login_password: '{{ mysql_password }}'
 
-- name: create roundcube user 
+- name: create roundcube user
   mysql_user:
     name: roundcube
     password: '{{ mail_password }}'
@@ -186,13 +186,13 @@
     priv: 'roundcubemail.*:ALL'
     host: localhost
   no_log: true
-  
+
 - name: download roundcube latest
   get_url:
     url: https://github.com/roundcube/roundcubemail/releases/download/1.4.11/roundcubemail-1.4.11-complete.tar.gz
     dest: /tmp/roundcube.tar.gz
     mode: 0440
-  
+
 - name: extract roundcube
   unarchive:
     src: /tmp/roundcube.tar.gz
@@ -224,9 +224,9 @@
     owner: apache
     group: apache
     mode: 0644
-  notify: 
-  - restart httpd
-  - restart php-fpm
+  notify:
+    - restart httpd
+    - restart php-fpm
 
 - name: create config for roundcube
   template:
@@ -236,8 +236,8 @@
     group: apache
     mode: 0644
   notify:
-  - restart httpd
-  - restart php-fpm
+    - restart httpd
+    - restart php-fpm
 
 - name: seed database roundcubmail
   mysql_db:

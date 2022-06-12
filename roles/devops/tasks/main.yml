@@ -9,7 +9,7 @@
   notify: restart firewalld
 
 - name: create traefik folder
-  file: 
+  file:
     path: /etc/traefik
     state: directory
     mode: 0755
@@ -17,7 +17,7 @@
     group: root
 
 - name: Set traefik.toml file
-  copy: 
+  copy:
     src: traefik.toml
     dest: /etc/traefik/traefik.toml
     mode: 0755
@@ -35,15 +35,15 @@
       - source: /var/run/docker.sock
         target: /var/run/docker.sock
         type: bind
-        read_only: yes 
+        read_only: yes
       - source: /etc/traefik/traefik.toml
         target: /traefik.toml
         type: bind
         read_only: yes
     restart_policy: always
-    pull: yes 
+    pull: yes
 
-- name: docker run -d --name whoami-traefik --label traefik.enable=true --label 'traefik.http.routers.router.rule=Host(`{{hostname}}.sa.cs.ut.ee`)' --label 'traefik.http.routers.router.entrypoints=web' registry.hpc.ut.ee/mirror/containous/whoami 
+- name: docker run -d --name whoami-traefik --label traefik.enable=true --label 'traefik.http.routers.router.rule=Host(`{{hostname}}.sa.cs.ut.ee`)' --label 'traefik.http.routers.router.entrypoints=web' registry.hpc.ut.ee/mirror/containous/whoami
   docker_container:
     name: whoami-traefik
     image: registry.hpc.ut.ee/mirror/containous/whoami

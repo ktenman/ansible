@@ -6,8 +6,8 @@ metadata:
 spec:
   type: NodePort
   ports:
-  - port: 5000
-    targetPort: 80
-    protocol: TCP
+    - port: 5000
+      targetPort: 80
+      protocol: TCP
   selector:
     app: my-deployment

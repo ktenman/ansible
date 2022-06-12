@@ -22,7 +22,7 @@
 - name:  Add docker repo
   shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 
-- name: install docker 
+- name: install docker
   yum:
     name: ['docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-compose-plugin', 'python3-docker']
     state: present
@@ -35,7 +35,7 @@
     masked: no
 
 - name:  First, create a folder called docker_lab
-  file: 
+  file:
     path: /home/centos/docker_lab
     state: directory
     mode: 0755
@@ -70,11 +70,11 @@
         gateway: "{{ docker.network.gateway }}"
     driver: bridge
 
-- name: create whoami container 
+- name: create whoami container
   docker_container:
     name: whoami
     image: registry.hpc.ut.ee/mirror/containous/whoami
-    pull: yes 
+    pull: yes
     restart_policy: always
 
 - name: docker run
@@ -98,16 +98,16 @@
     path: /etc/named/{{ hostname }}.{{ domain_name }}
     block: |
       container-proxy IN CNAME {{ hostname}}
-    marker: 
+    marker:
       "; {mark} ANSIBLE MANAGED BLOCK for CNAME for container-proxy"
-  notify: 
-  - increment serial
-  - restart named
+  notify:
+    - increment serial
+    - restart named
 
 - name: flush handlers
   meta: flush_handlers
 
-- name: create virtual host for container-proxy 
+- name: create virtual host for container-proxy
   template:
     src: vhost_proxy_container.j2
     dest: /etc/httpd/conf.d/container-proxy.conf
@@ -122,5 +122,5 @@
     state: enabled
     port: "5005/tcp"
   notify:
-  - restart firewalld
-  - restart named
+    - restart firewalld
+    - restart named
