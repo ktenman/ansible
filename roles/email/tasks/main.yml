@@ -161,7 +161,7 @@
 - name: create roundcube user 
   mysql_user:
     name: roundcube
-    password: '{{ mailuser_db_pass }}'
+    password: '{{ mail_password }}'
     login_password: '{{ mysql_password }}'
     priv: 'roundcubemail.*:ALL'
     host: localhost
