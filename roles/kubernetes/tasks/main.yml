@@ -51,7 +51,7 @@
   firewalld:
     permanent: yes
     state: enabled
-    port: 6443/tcp
+    port: "6443/tcp"
   notify:
     - reload firewalld
     - restart firewalld
