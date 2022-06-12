@@ -150,7 +150,7 @@
   uri:
     url: https://wordpress.org/latest.tar.gz
     dest: /tmp/wordpress.tar.gz
-    mode: '0644'
+    mode: 0644
     force: yes
 
 - name: extract wordpress to /var/www/html
@@ -222,7 +222,7 @@
     mode: 0644
   notify: restart httpd
 
-- name: Add 80 service
+- name: Open port 80
   firewalld:
     port: "{{ item }}"
     permanent: yes
