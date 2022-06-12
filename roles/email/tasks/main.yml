@@ -107,9 +107,24 @@
   dnf:
     enable_plugin: powertools
 
-- name: install a bunch of shit
+- name: install 'make', 'ImageMagick', 'ImageMagick-devel', 'ImageMagick-perl', 'pcre-devel', 'zlib', ' zlib-devel'
   dnf:
-    name: ['make', ' ImageMagick', ' ImageMagick-devel', ' ImageMagick-perl', ' pcre-devel', ' zlib', ' zlib-devel', ' libzip', ' libzip-devel', ' libmcrypt-devel', ' php', ' php-fpm', ' php-devel', ' php-pear', ' php-cli', ' php-gd', ' php-curl', ' php-xml', ' php-mysqlnd', ' php-mbstring', ' php-intl', ' php-ldap', ' mariadb', ' mariadb-server', 'httpd']
+    name: ['make', 'ImageMagick', 'ImageMagick-devel', 'ImageMagick-perl', 'pcre-devel', 'zlib', ' zlib-devel']
+    state: installed
+
+- name: install 'libzip', 'libzip-devel', 'libmcrypt-devel'
+  dnf:
+    name: ['libzip', 'libzip-devel', 'libmcrypt-devel']
+    state: installed
+
+- name: install 'php', 'php-fpm', 'php-devel', 'php-pear', 'php-cli', 'php-gd', 'php-curl', 'php-xml', ' php-mysqlnd', ' php-mbstring', ' php-intl', 'php-ldap'
+  dnf:
+    name: ['php', 'php-fpm', 'php-devel', 'php-pear', 'php-cli', 'php-gd', 'php-curl', 'php-xml', ' php-mysqlnd', ' php-mbstring', ' php-intl', 'php-ldap']
+    state: installed
+
+- name: install 'mariadb',' mariadb-server', 'httpd'
+  dnf:
+    name: ['mariadb',' mariadb-server', 'httpd']
     state: installed
 
 - name: install imagick mcrypt zip
