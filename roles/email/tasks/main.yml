@@ -210,5 +210,8 @@
     state: import
     login_password: '{{ mysql_password }}'
     target: /var/www/html/roundcubemail/SQL/mysql.initial.sql
-  ignore_errors: true 
+  ignore_errors: true
+
+- name: flush handlers
+  meta: flush_handlers
 
