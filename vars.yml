@@ -9,7 +9,7 @@ notify_server: 172.17.66.228
 my_name: Konstantin Tenman
 
 mail_user: mailuser
-mail_password: securepassword
+mail_password: securepass
 mysql_password: 6U8rsUgkStphAQUQJOxW4g==
 kv_pass: "random123"
 
