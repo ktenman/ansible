@@ -7,7 +7,7 @@ $TTL    15M
                              5M         ; Retry
                            120M         ; Expire
                             600 )       ; Negative Cache TTL
-@              IN      NS      ns1
-@              IN      A       {{ cloud_metadata.content }}
-ns1             IN      A       {{ cloud_metadata.content }}
-{{ hostname }}   IN      A     {{ cloud_metadata.content }}
+@               IN      NS      ns1
+@               IN      A       {{ external_ip }}
+ns1             IN      A       {{ external_ip }}
+{{ hostname }}  IN      A       {{ external_ip }}
