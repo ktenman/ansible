@@ -2,4 +2,4 @@
 localhost
 
 [sysadmin]
-centos@localhost ansible_user=centos
+centos@172.17.90.102 ansible_user=centos
